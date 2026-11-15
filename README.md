@@ -17,16 +17,15 @@ Global install (the npm name `argus` belongs to an unrelated package, so the pac
 is `argus-pentest`; the installed command is `argus`):
 
 ```bash
-npm install -g argus-pentest   # needs Bun >= 1.4.0 on PATH
+npm install -g argus-pentest   # needs Bun >= 1.3.14 on PATH
 argus --version
 argus                          # terminal UI
 argus --help                   # command-line interface
 argus doctor                   # environment and toolchain check
 ```
 
-The installed command is `argus`, not `argus-pentest`. If `argus` fails with
-`Cannot find module '@modelcontextprotocol/sdk/client/stdio'`, the Bun on PATH is
-too old: run `bun upgrade` (1.4.0 or newer) and start `argus` again.
+The installed command is `argus`, not `argus-pentest`. If an installed copy ever
+fails to resolve an MCP SDK subpath, run `bun upgrade` and start `argus` again.
 
 From a checkout:
 

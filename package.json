@@ -1,6 +1,6 @@
 {
   "name": "argus-pentest",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Terminal-first authorized security assessment harness: agentic pentesting, WSL/Kali tooling, live terminal, research reports.",
   "license": "UNLICENSED",
   "type": "module",
@@ -13,7 +13,7 @@
     "README.md"
   ],
   "engines": {
-    "bun": ">=1.4.0"
+    "bun": ">=1.3.14"
   },
   "keywords": [
     "pentest",
