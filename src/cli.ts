@@ -21,7 +21,8 @@ import type { ProfileId, ReportFormat, RunOptions } from "./core/types";
 const HELP = `ARGUS - authorized security assessment harness
 
 Usage:
-  argus tui
+  argus                          launch the terminal UI
+  argus tui                      launch the terminal UI explicitly
   argus init [--force]
   argus authorize [--accept <name> | --revoke | --status]
   argus scope init [path]
@@ -84,7 +85,17 @@ async function main(): Promise<void> {
     process.stdout.write(`argus ${version}\n`);
     return;
   }
-  if (!command || flags.get("help")) {
+  if (flags.get("help")) {
+    process.stdout.write(HELP);
+    return;
+  }
+  if (!command) {
+    // A bare invocation in a real terminal opens the UI; piped or scripted
+    // invocations still get the command reference.
+    if (process.stdout.isTTY && process.stdin.isTTY) {
+      await import("./tui/index.tsx");
+      return;
+    }
     process.stdout.write(HELP);
     return;
   }
