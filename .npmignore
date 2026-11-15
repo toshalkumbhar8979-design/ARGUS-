@@ -1,0 +1,32 @@
+# Local assessment data and operator scope must never ship.
+AGENTS.md
+scope.json
+scope.*.json
+argus-workspace/
+.argus/
+.argus-live/
+.argus.json
+authorization.json
+journals/
+exports/
+runs/
+
+# Tests and development-only material.
+tests/
+docs/
+tsconfig.json
+bun.lock
+*.tgz
+*.log
+browser-smoke.png
+
+# Tooling and editor state.
+.freebuff/
+.cloud-attachments/
+.github/
+.vscode/
+.idea/
+node_modules/
+coverage/
+.DS_Store
+Thumbs.db
