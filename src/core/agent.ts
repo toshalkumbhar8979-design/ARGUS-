@@ -2391,6 +2391,43 @@ export class GroundedAgent {
     }
 
     const observed = dedupeFindings([...known.values()]);
+    // The loop can end on a step cap, a repeated-action guard, repeated tool
+    // errors or invalid replies. Ask once more for a written answer from the
+    // evidence already collected instead of returning a dead-end fallback.
+    if (!callbacks.signal?.aborted && steps > 0) {
+      callbacks.onStep?.(steps, "writing the final answer from collected evidence");
+      try {
+        const wrapMessages: ChatMessage[] = [
+          ...messages,
+          {
+            role: "user",
+            content:
+              "WRAP-UP: stop using tools. Using only the evidence already collected in this conversation, answer the original goal now. Return exactly one JSON object {\"final\":{\"summary\":string,\"findingIds\":string[],\"nextSteps\":string[],\"gaps\":string[]}}. Name what was attempted, what broke, and the exact remaining blocker or gap. Do not invent results.",
+          },
+        ];
+        const raw = await this.chat.complete(wrapMessages, { signal: callbacks.signal });
+        const reply = parseAgentReply(raw);
+        if (reply.kind === "final") {
+          const verified = verifyAgentReport(reply.final, observed);
+          const finalGaps = [...gaps, ...reply.final.gaps, "step limit reached; finished with a wrap-up answer from collected evidence"];
+          return {
+            summary: verified.summary,
+            verified: verified.verified.length > 0 ? dedupeFindings(verified.verified) : observed,
+            dropped: verified.dropped,
+            nextSteps: reply.final.nextSteps,
+            gaps: [...new Set(finalGaps)],
+            steps,
+            scans: [...new Set(scans)],
+            observed: known.size,
+            targets: [...this.allowedTargets],
+            permissionSummary: permissionSummary(this.permissions),
+            plan: this.plan,
+          };
+        }
+      } catch {
+        // a provider that cannot answer the wrap-up keeps the fallback below
+      }
+    }
     const lastReply = lastInvalidRaw.replace(/\s+/g, " ").trim();
     const stoppedAtBudget = Number.isFinite(this.maxSteps) && steps >= this.maxSteps && !callbacks.signal?.aborted;
     const fallback =

@@ -46,6 +46,37 @@ describe("unbounded agent loop", () => {
     expect(result.gaps).not.toContain("step budget");
   });
 
+  test("a finite step cap still ends with a written answer", async () => {
+    let calls = 0;
+    const chat: ChatClient = {
+      async complete(messages: ChatMessage[]) {
+        calls += 1;
+        const last = messages[messages.length - 1]?.content ?? "";
+        if (last.includes("WRAP-UP")) {
+          return JSON.stringify({
+            final: {
+              summary: "Capped, but reported the evidence already collected.",
+              findingIds: [],
+              nextSteps: [],
+              gaps: ["authenticated flows were not tested"],
+            },
+          });
+        }
+        return JSON.stringify({
+          action: { tool: "read_file", args: { path: `src/file-${calls}.ts`, startLine: 1, endLine: 1 } },
+        });
+      },
+    };
+
+    const agent = new GroundedAgent(chat, backend(), "inspect the source", "scope ok", { maxSteps: 3 });
+    const result = await agent.run("inspect the source");
+
+    expect(result.steps).toBe(3);
+    expect(result.summary).toContain("Capped, but reported");
+    expect(result.gaps.some((gap) => gap.includes("wrap-up"))).toBe(true);
+    expect(result.gaps).toContain("authenticated flows were not tested");
+  });
+
   test("stops a repeated identical tool call instead of looping forever", async () => {
     const reply = JSON.stringify({
       action: { tool: "read_file", args: { path: "src/same.ts", startLine: 1, endLine: 1 } },
