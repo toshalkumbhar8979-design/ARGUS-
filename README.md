@@ -19,7 +19,7 @@ is `argus-pentest`; the installed command is `argus`):
 ```bash
 npm install -g argus-pentest   # needs Bun >= 1.3.14 on PATH
 argus --version
-argus                          # terminal UI
+argus tui                      # terminal UI
 argus --help                   # command-line interface
 argus doctor                   # environment and toolchain check
 ```

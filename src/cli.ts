@@ -21,6 +21,7 @@ import type { ProfileId, ReportFormat, RunOptions } from "./core/types";
 const HELP = `ARGUS - authorized security assessment harness
 
 Usage:
+  argus tui
   argus init [--force]
   argus authorize [--accept <name> | --revoke | --status]
   argus scope init [path]
@@ -88,6 +89,9 @@ async function main(): Promise<void> {
     return;
   }
   switch (command) {
+    case "tui":
+      await import("./tui/index.tsx");
+      return;
     case "init":
       return init(Boolean(flags.get("force")));
     case "authorize":

@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { createServer, type Server } from "node:https";
 import type { AddressInfo } from "node:net";
+import { connect as tlsConnect } from "node:tls";
 import { HttpClient, readPeerTls } from "../src/core/http";
 import { ScopeGuard } from "../src/core/scope";
 import type { ScopePolicy } from "../src/core/types";
@@ -82,6 +83,24 @@ describe("TLS peer certificate handling", () => {
       const response = await client.get(await tlsTarget("ok"));
       expect(response.status).toBe(200);
       expect(response.body).toBe("tls-ok");
+      if (!response.tls) {
+        // Bun 1.3 exposes no peer certificate even on a direct TLS socket. Only
+        // accept the missing details when the runtime itself cannot provide them.
+        const port = Number(new URL(baseUrl).port);
+        const supported = await new Promise<boolean>((resolve) => {
+          const socket = tlsConnect(
+            { host: "127.0.0.1", port, rejectUnauthorized: false },
+            () => {
+              const cert = socket.getPeerCertificate(false);
+              socket.destroy();
+              resolve(Boolean(cert && cert.subject));
+            },
+          );
+          socket.on("error", () => resolve(false));
+        });
+        expect(supported).toBe(false);
+        return;
+      }
       expect(response.tls).toBeDefined();
       expect(response.tls?.selfSigned).toBe(true);
       expect(response.tls?.hostnameMatch).toBe(true);

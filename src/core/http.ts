@@ -171,7 +171,8 @@ export class HttpClient {
         // Peer-certificate details are only readable while the socket is still
         // attached. The agent releases it (res.socket -> null) once the body has
         // been consumed or the request is aborted, so read the handshake here
-        // instead of inside the stream callbacks below.
+        // instead of inside the stream callbacks below. Bun 1.3 exposes no peer
+        // certificate at all, so `tls` is simply absent there.
         const tls = isHttps ? readPeerTls(res.socket, target.hostname) : undefined;
         const chunks: Buffer[] = [];
         let total = 0;
